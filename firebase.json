@@ -1,0 +1,25 @@
+// Phone Login Function
+function sendOTP() {
+    const phoneNumber = "+91" + document.getElementById('phoneInput').value;
+    const appVerifier = window.recaptchaVerifier;
+
+    firebase.auth().signInWithPhoneNumber(phoneNumber, appVerifier)
+        .then((confirmationResult) => {
+            window.confirmationResult = confirmationResult;
+            alert("OTP Bhej diya gaya hai!");
+            document.getElementById('otpBox').style.display = 'block';
+        }).catch((error) => {
+            alert("Error: " + error.message);
+        });
+}
+
+function verifyOTP() {
+    const code = document.getElementById('otpInput').value;
+    confirmationResult.confirm(code).then((result) => {
+        const user = result.user;
+        alert("Mubarak ho! Login Successful.");
+        showPage('home'); // Login ke baad home page par le jao
+    }).catch((error) => {
+        alert("Galat OTP!");
+    });
+}

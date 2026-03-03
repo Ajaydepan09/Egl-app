@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EGL Legend - Pro Edition</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary: #ff3b3b; --bg: #0b0e14; --card: #1a1d24; --text: #ffffff; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Poppins', sans-serif; overflow-x: hidden; }
+        
+        /* Premium Header */
+        header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(26, 29, 36, 0.95); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #334155; }
+        .wallet-box { background: #1e293b; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--primary); display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        
+        /* Tournament Card */
+        .match-list { padding: 15px; }
+        .match-card { background: var(--card); border-radius: 15px; margin-bottom: 20px; overflow: hidden; border: 1px solid #334155; position: relative; transition: 0.3s; }
+        .match-card:active { transform: scale(0.98); }
+        .banner { width: 100%; height: 150px; object-fit: cover; }
+        .details { padding: 15px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
+        .stat-item { background: #0f172a; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #1e293b; }
+        .stat-item span { font-size: 10px; color: #94a3b8; display: block; }
+        .stat-item b { font-size: 14px; color: var(--primary); }
+        
+        /* Action Buttons */
+        .join-btn { background: linear-gradient(90deg, #ff416c, #ff4b2b); width: 100%; padding: 12px; border: none; color: white; font-weight: bold; border-radius: 0 0 15px 15px; cursor: pointer; font-size: 16px; }
+        
+        /* Hidden Sections */
+        .page { display: none; padding: 20px; }
+        .active { display: block; }
+        
+        /* Bottom Nav */
+        nav { position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #334155; }
+        nav div { text-align: center; font-size: 10px; color: #94a3b8; cursor: pointer; }
+        nav i { font-size: 20px; display: block; margin-bottom: 3px; }
+        .nav-active { color: var(--primary) !important; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <img src="https://via.placeholder.com/40" style="border-radius: 50%; border: 2px solid var(--primary);">
+            <div><b id="userName">Player</b><br><small style="color:#22c55e">Online</small></div>
+        </div>
+        <div class="wallet-box" onclick="showPage('wallet')">
+            <span id="balance">C 0</span>
+            <i class="fas fa-plus-circle" style="color:var(--primary)"></i>
+        </div>
+    </header>
+
+    <div id="home" class="page active">
+        <h3 style="margin-left: 15px;">Live Tournaments</h3>
+        <div id="matchContainer" class="match-list">
+            <p style="text-align:center; color:#64748b;">Loading matches...</p>
+        </div>
+    </div>
+
+    <div id="wallet" class="page">
+        <h2>My Wallet</h2>
+        <div style="background:var(--card); padding:20px; border-radius:15px; text-align:center;">
+            <h1 id="wallBal">₹0.00</h1>
+            <button class="join-btn" style="border-radius:10px;">ADD MONEY</button>
+            <button class="join-btn" style="background:#1e293b; margin-top:10px; border-radius:10px;">WITHDRAW</button>
+        </div>
+    </div>
+
+    <nav>
+        <div class="nav-active" onclick="showPage('home')"><i class="fas fa-gamepad"></i>Play</div>
+        <div onclick="showPage('wallet')"><i class="fas fa-wallet"></i>Wallet</div>
+        <div onclick="alert('Refer & Earn Coming Soon!')"><i class="fas fa-users"></i>Refer</div>
+        <div onclick="alert('Help Support Open')"><i class="fas fa-headset"></i>Support</div>
+    </nav>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCk84qLy9H4Azcs689M_MAAmft...", // Aapka key pehle se set hai
+            databaseURL: "https://egl-legend-default-rtdb.firebaseio.com",
+            projectId: "egl-legend"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Load Matches from Admin Panel
+        function loadMatches() {
+            db.ref('matches/').on('value', (snapshot) => {
+                const container = document.getElementById('matchContainer');
+                container.innerHTML = '';
+                snapshot.forEach((child) => {
+                    const data = child.val();
+                    container.innerHTML += `
+                        <div class="match-card">
+                            <div style="position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.6); padding:4px 8px; border-radius:5px; font-size:10px;">${data.map}</div>
+                            <img src="https://i.postimg.cc/avl-esports-match.jpg" class="banner">
+                            <div class="details">
+                                <h3 style="margin:0">${data.title}</h3>
+                                <small style="color:#64748b">Time: ${data.time}</small>
+                                <div class="stats-grid">
+                                    <div class="stat-item"><span>WIN PRIZE</span><b>₹${data.prize}</b></div>
+                                    <div class="stat-item"><span>PER KILL</span><b>₹${data.perKill}</b></div>
+                                    <div class="stat-item"><span>ENTRY</span><b>₹${data.entry}</b></div>
+                                </div>
+                            </div>
+                            <button class="join-btn" onclick="joinMatch('${child.key}', ${data.entry})">JOIN NOW</button>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        function joinMatch(id, fee) {
+            const uid = prompt("Enter FF UID to Join:");
+            if(uid) alert(`Successfully Joined! ${fee} coins deducted.`);
+        }
+
+        window.onload = loadMatches;
+    </script>
+</body>
+</html>
